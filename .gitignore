@@ -39,3 +39,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# generated local reports
+PROJECT_OVERVIEW_REPORT.md
+AGENTS.md
+CLAUDE.md
+
+
+/src/generated/prisma

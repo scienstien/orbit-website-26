@@ -1,37 +1,83 @@
-import Image from "next/image";
+"use client";
 
-const sponsors = [
+import Image from "next/image";
+import { useState } from "react";
+
+type Sponsor = {
+  src: string;
+  alt: string;
+  href: string;
+  frameClassName: string;
+  imageClassName?: string;
+};
+
+const sponsors: Sponsor[] = [
   {
     src: "/images/sponsors/sp1.png",
     alt: "SimScale",
     href: "https://www.simscale.com/",
-    className: "h-8 sm:h-10",
+    frameClassName: "h-14 w-44 sm:w-52",
+    imageClassName: "p-3",
   },
   {
     src: "/images/sponsors/sp2.png",
     alt: "SolidWorks",
     href: "https://www.solidworks.com/",
-    className: "h-24 sm:h-28 md:h-36",
+    frameClassName: "h-32 w-48 sm:h-40 sm:w-56",
   },
   {
     src: "/images/sponsors/sp5.avif",
     alt: "OnlyScrews",
     href: "https://onlyscrews.in/",
-    className: "h-16 sm:h-22 md:h-28",
+    frameClassName: "h-24 w-48 sm:h-32 sm:w-56",
   },
   {
     src: "/images/sponsors/sp4.png",
     alt: "Onshape",
     href: "https://www.onshape.com/en/",
-    className: "h-12 sm:h-16 md:h-20",
+    frameClassName: "h-20 w-44 sm:h-24 sm:w-52",
   },
   {
     src: "/images/sponsors/sp7.png",
     alt: "BigBinary",
     href: "https://www.bigbinary.com/",
-    className: "h-16 sm:h-20 md:h-28",
+    frameClassName: "h-24 w-48 sm:h-32 sm:w-56",
   },
 ];
+
+function SponsorLogo({ sponsor }: { sponsor: Sponsor }) {
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  return (
+    <a
+      href={sponsor.href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={`relative flex items-center justify-center transition-opacity duration-200 hover:opacity-75 ${sponsor.frameClassName}`}
+      aria-label={sponsor.alt}
+    >
+      {!isLoaded ? (
+        <span
+          className="absolute inset-0 rounded-lg border border-white/10 bg-white/10 shadow-inner shadow-white/5 animate-pulse"
+          aria-hidden="true"
+        />
+      ) : null}
+
+      <Image
+        fill
+        src={sponsor.src}
+        alt={sponsor.alt}
+        sizes="(min-width: 768px) 224px, 192px"
+        quality={75}
+        onLoad={() => setIsLoaded(true)}
+        onError={() => setIsLoaded(true)}
+        className={`object-contain transition duration-300 ${
+          isLoaded ? "opacity-100" : "opacity-0"
+        } ${sponsor.imageClassName ?? ""}`}
+      />
+    </a>
+  );
+}
 
 export default function SponsorsPage() {
   return (
@@ -42,16 +88,8 @@ export default function SponsorsPage() {
         </h2>
 
         <div className="flex flex-wrap justify-center items-center gap-8 sm:gap-10 md:gap-14 max-w-5xl mx-auto">
-          {sponsors.map(({ src, alt, href, className }) => (
-            <a
-              key={alt}
-              href={href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-center transition-opacity duration-200 hover:opacity-75"
-            >
-              <Image src={src} alt={alt} width={200} height={100} className={`object-contain ${className}`} />
-            </a>
+          {sponsors.map((sponsor) => (
+            <SponsorLogo key={sponsor.alt} sponsor={sponsor} />
           ))}
         </div>
       </div>
