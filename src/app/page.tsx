@@ -1,5 +1,5 @@
-import TypingEffect from "@/components/TypingEffect";
 import Image from "next/image";
+import TypingEffect from "@/components/TypingEffect";
 
 export default function HomePage() {
   return (

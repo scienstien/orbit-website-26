@@ -1,9 +1,12 @@
 "use client";
 
-import { useMemo } from "react";
-import type { ComponentProps } from "react";
-import { Particles as TsParticles, ParticlesProvider } from "@tsparticles/react";
+import {
+  ParticlesProvider,
+  Particles as TsParticles,
+} from "@tsparticles/react";
 import { loadSlim } from "@tsparticles/slim";
+import type { ComponentProps } from "react";
+import { useMemo } from "react";
 
 import "./style.css";
 
@@ -12,7 +15,9 @@ type ParticlesProps = {
 };
 
 type ParticlesInit = ComponentProps<typeof ParticlesProvider>["init"];
-type ParticlesOptions = NonNullable<ComponentProps<typeof TsParticles>["options"]>;
+type ParticlesOptions = NonNullable<
+  ComponentProps<typeof TsParticles>["options"]
+>;
 
 const initParticles: ParticlesInit = async (engine) => {
   await loadSlim(engine);
@@ -87,7 +92,7 @@ export default function Particles({ id = "partiles" }: ParticlesProps) {
       },
       detectRetina: true,
     }),
-    []
+    [],
   );
 
   return (

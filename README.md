@@ -1,4 +1,49 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Orbit Website 26
+
+Next.js App Router website for Orbit NIT Trichy.
+
+## Local Database
+
+The app uses Postgres through Prisma. Copy the example env and fill in the auth
+values:
+
+```bash
+cp .env.example .env.local
+```
+
+For quick local verification with Prisma's local Postgres server, run this in
+one terminal:
+
+```bash
+npx prisma dev
+```
+
+Copy the printed `DATABASE_URL` and `SHADOW_DATABASE_URL` into `.env.local`.
+Then, in a second terminal, apply the current schema without creating
+migrations:
+
+```bash
+npm run db:push
+npm run db:generate
+```
+
+`prisma migrate dev` can be used later with a normal local Postgres database
+when we want to create durable migration files.
+
+For a normal host Postgres database, use:
+
+```env
+DATABASE_URL="postgresql://orbit:orbit@localhost:5432/orbit?schema=public"
+```
+
+Useful commands:
+
+```bash
+npm run db:push
+npm run db:migrate
+npm run db:generate
+npm run db:studio
+```
 
 ## Getting Started
 

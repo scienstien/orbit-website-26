@@ -1,9 +1,11 @@
 "use client";
 
-import { Menu, X } from "lucide-react";
+import { LogOut, Menu, X } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, type KeyboardEvent } from "react";
+import { type KeyboardEvent, useEffect, useState } from "react";
+import { useSession } from "@/lib/auth-client";
+import { signOut } from "@/lib/auth-utils";
 
 const navItems = [
   { name: "Home", path: "/" },
@@ -13,14 +15,23 @@ const navItems = [
 ];
 
 type NavProps = {
+  isAuthenticated: boolean;
   scrollIntoView?: never;
 };
 
-export default function Nav(_: NavProps) {
+export default function Nav({ isAuthenticated }: NavProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
+  const session = useSession();
   const router = useRouter();
+  const hasSession = session.isPending
+    ? isAuthenticated
+    : Boolean(session.data?.user?.id);
 
-  const handleNavKeyDown = (event: KeyboardEvent<HTMLLIElement>, path: string) => {
+  const handleNavKeyDown = (
+    event: KeyboardEvent<HTMLLIElement>,
+    path: string,
+  ) => {
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
       goTo(path);
@@ -40,6 +51,21 @@ export default function Nav(_: NavProps) {
     setIsOpen(false);
   };
 
+  const handleSignOut = async () => {
+    setIsSigningOut(true);
+
+    try {
+      await signOut();
+      await session.refetch();
+      setIsOpen(false);
+      router.replace("/login");
+      router.refresh();
+    } catch (error) {
+      console.error("Sign out failed", error);
+      setIsSigningOut(false);
+    }
+  };
+
   return (
     <nav className="relative z-50 px-60 max-lg:px-5 font-mono">
       <div className="flex justify-between items-center pt-4 px-6 lg:px-12">
@@ -50,6 +76,7 @@ export default function Nav(_: NavProps) {
             src="/images/branding/OrbitlogoblackR.png"
             alt="Orbit Logo"
             className="h-16 lg:h-20 pt-2 hover:cursor-pointer"
+            style={{ width: "auto" }}
             onClick={() => goTo("/")}
           />
         </div>
@@ -80,13 +107,25 @@ export default function Nav(_: NavProps) {
           </li>
         </ul>
 
-        <button
-          type="button"
-          onClick={() => goTo("/login")}
-          className="max-lg:hidden text-white text-xl p-2 px-5 border hover:cursor-pointer transition-all duration-300 hover:shadow-none shadow-[5px_5px_rgba(255,255,255,0.8)]"
-        >
-          Login
-        </button>
+        {hasSession ? (
+          <button
+            type="button"
+            onClick={handleSignOut}
+            disabled={isSigningOut}
+            className="max-lg:hidden flex items-center gap-2 text-white text-xl p-2 px-5 border hover:cursor-pointer transition-all duration-300 hover:shadow-none shadow-[5px_5px_rgba(255,255,255,0.8)] disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <LogOut className="h-4 w-4" />
+            {isSigningOut ? "Signing out..." : "Sign out"}
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => goTo("/login")}
+            className="max-lg:hidden text-white text-xl p-2 px-5 border hover:cursor-pointer transition-all duration-300 hover:shadow-none shadow-[5px_5px_rgba(255,255,255,0.8)]"
+          >
+            Login
+          </button>
+        )}
 
         <button
           type="button"
@@ -124,15 +163,29 @@ export default function Nav(_: NavProps) {
                 <span className="absolute -bottom-1 left-0 w-0 transition-all duration-300 h-0.5 bg-white group-hover:w-full" />
               </p>
             </li>
-            <li className="pt-6">
-              <button
-                type="button"
-                onClick={() => goTo("/login")}
-                className="text-white text-xl p-2 px-5 border hover:cursor-pointer transition-all duration-300 hover:shadow-none shadow-[5px_5px_rgba(255,255,255,0.8)]"
-              >
-                Login
-              </button>
-            </li>
+            {hasSession ? (
+              <li className="pt-6">
+                <button
+                  type="button"
+                  onClick={handleSignOut}
+                  disabled={isSigningOut}
+                  className="flex items-center gap-2 text-white text-xl p-2 px-5 border hover:cursor-pointer transition-all duration-300 hover:shadow-none shadow-[5px_5px_rgba(255,255,255,0.8)] disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  <LogOut className="h-4 w-4" />
+                  {isSigningOut ? "Signing out..." : "Sign out"}
+                </button>
+              </li>
+            ) : (
+              <li className="pt-6">
+                <button
+                  type="button"
+                  onClick={() => goTo("/login")}
+                  className="text-white text-xl p-2 px-5 border hover:cursor-pointer transition-all duration-300 hover:shadow-none shadow-[5px_5px_rgba(255,255,255,0.8)]"
+                >
+                  Login
+                </button>
+              </li>
+            )}
           </ul>
         </div>
       ) : null}

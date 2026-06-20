@@ -22,6 +22,13 @@ body {
   overflow-x: hidden;
 }
 
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -29,4 +36,147 @@ body {
 
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
+}
+
+@keyframes login-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.login-rise {
+  animation: login-rise 560ms ease-out both;
+}
+
+.login-rise-delay {
+  animation-delay: 120ms;
+}
+
+@keyframes rocket-launch {
+  0% {
+    opacity: 1;
+    translate: 0 0;
+  }
+
+  30% {
+    opacity: 1;
+    translate: 0 0;
+  }
+
+  58% {
+    opacity: 1;
+    translate: 24px -31px;
+  }
+
+  100% {
+    opacity: 0;
+    translate: 54px -70px;
+  }
+}
+
+@keyframes rocket-flame {
+  0% {
+    opacity: 0;
+    scale: 1 0.12;
+  }
+
+  10% {
+    opacity: 0;
+    scale: 1 0.12;
+  }
+
+  20% {
+    opacity: 1;
+    scale: 1 0.85;
+  }
+
+  30% {
+    opacity: 1;
+    scale: 1 1.18;
+  }
+
+  58% {
+    opacity: 0.85;
+    scale: 1 1.45;
+  }
+
+  100% {
+    opacity: 0;
+    scale: 1 0.35;
+  }
+}
+
+@keyframes dauth-button-sweep {
+  from {
+    transform: translateX(-120%);
+  }
+
+  to {
+    transform: translateX(120%);
+  }
+}
+
+.dauth-launch-button {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.dauth-launch-button::before {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  content: "";
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    rgba(59, 130, 246, 0.08) 34%,
+    rgba(59, 130, 246, 0.22) 48%,
+    transparent 66%
+  );
+  transform: translateX(-120%);
+}
+
+.dauth-launching::before {
+  animation: dauth-button-sweep 1200ms ease-out;
+}
+
+.rocket-stage {
+  position: relative;
+  display: inline-grid;
+  width: 1rem;
+  height: 1rem;
+  place-items: center;
+}
+
+.rocket-stage::after {
+  position: absolute;
+  top: 0.68rem;
+  left: 0.27rem;
+  width: 0.34rem;
+  height: 0.74rem;
+  content: "";
+  background: linear-gradient(#facc15, #fb7185, transparent);
+  border-radius: 999px;
+  opacity: 0;
+  rotate: 397.6deg;
+  scale: 1 0.12;
+  /* dont ask me how many attempts it took to perfect this positioning :) */
+  translate: -6px 5px;
+  transform-origin: top;
+}
+
+.rocket-stage-launching {
+  display: inline-flex;
+  animation: rocket-launch 1200ms cubic-bezier(0.2, 0.72, 0.18, 1) both;
+}
+
+.rocket-stage-launching::after {
+  animation: rocket-flame 1200ms ease-out both;
 }

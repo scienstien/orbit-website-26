@@ -3,7 +3,8 @@ export const DAUTH_TOKEN_URL = "https://auth.delta.nitt.edu/api/oauth/token";
 export const DAUTH_USER_INFO_URL =
   "https://auth.delta.nitt.edu/api/resources/user";
 export const DAUTH_DEBUG_STATE_COOKIE = "dauth_debug_state";
-export const DAUTH_DEBUG_SCOPES = ["openid", "email", "profile", "user"];
+export const DAUTH_SCOPES = ["openid", "email", "profile", "user"];
+export const DAUTH_DEBUG_SCOPES = DAUTH_SCOPES;
 
 export function isDauthDebugEnabled() {
   return process.env.DAUTH_DEBUG === "true";
