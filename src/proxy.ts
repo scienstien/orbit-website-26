@@ -10,8 +10,24 @@ import {
 
 const AUTH_API_PREFIX = "/api/auth";
 
+type ProxyUser = {
+  passwordSetAt: Date | null;
+  role: NonNullable<Awaited<ReturnType<typeof db.user.findUnique>>>["role"];
+};
+
 function redirectTo(pathname: string, request: NextRequest) {
   return NextResponse.redirect(new URL(pathname, request.url));
+}
+
+function allowUnavailableAuth(request: NextRequest) {
+  return request.method === "GET" || request.method === "HEAD";
+}
+
+function rejectUnavailableAuth() {
+  return NextResponse.json(
+    { error: "Authentication storage is unavailable." },
+    { status: 503 },
+  );
 }
 
 function rejectPasswordSetupRequired() {
@@ -28,9 +44,21 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const session = await auth.api.getSession({
-    headers: request.headers,
-  });
+  let session: Awaited<ReturnType<typeof auth.api.getSession>>;
+
+  try {
+    session = await auth.api.getSession({
+      headers: request.headers,
+    });
+  } catch (error) {
+    console.error("proxy:getSession failed", error);
+
+    if (allowUnavailableAuth(request)) {
+      return NextResponse.next();
+    }
+
+    return rejectUnavailableAuth();
+  }
 
   if (!session?.user?.id) {
     if (pathname === SET_PASSWORD_PAGE) {
@@ -40,10 +68,22 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const user = await db.user.findUnique({
-    where: { id: session.user.id },
-    select: { passwordSetAt: true, role: true },
-  });
+  let user: ProxyUser | null;
+
+  try {
+    user = await db.user.findUnique({
+      where: { id: session.user.id },
+      select: { passwordSetAt: true, role: true },
+    });
+  } catch (error) {
+    console.error("proxy:findUser failed", error);
+
+    if (allowUnavailableAuth(request)) {
+      return NextResponse.next();
+    }
+
+    return rejectUnavailableAuth();
+  }
 
   if (!user?.passwordSetAt) {
     if (pathname === SET_PASSWORD_PAGE) {
