@@ -1,15 +1,31 @@
 import { LockKeyhole } from "lucide-react";
 import { redirect } from "next/navigation";
 import { requireSessionPage } from "@/lib/auth-guards";
+import {
+  getPathWithTargetUri,
+  getSafeRedirectPath,
+  LOGIN_PAGE,
+  TARGET_URI_PARAM,
+} from "@/lib/auth-redirects";
 import SetPasswordForm from "./SetPasswordForm";
 
-const BLOG_PAGE = "/blogpage";
+type SetPasswordPageProps = {
+  searchParams: Promise<{
+    [TARGET_URI_PARAM]?: string | string[];
+  }>;
+};
 
-export default async function SetPasswordPage() {
-  const user = await requireSessionPage("/login");
+export default async function SetPasswordPage({
+  searchParams,
+}: SetPasswordPageProps) {
+  const params = await searchParams;
+  const targetUri = getSafeRedirectPath(params[TARGET_URI_PARAM]);
+  const user = await requireSessionPage(
+    getPathWithTargetUri(LOGIN_PAGE, targetUri),
+  );
 
   if (user.passwordSetAt) {
-    redirect(BLOG_PAGE);
+    redirect(targetUri);
   }
 
   return (
@@ -23,7 +39,7 @@ export default async function SetPasswordPage() {
           Create your Orbit password before password login is enabled for your
           account.
         </p>
-        <SetPasswordForm />
+        <SetPasswordForm targetUri={targetUri} />
       </section>
     </main>
   );

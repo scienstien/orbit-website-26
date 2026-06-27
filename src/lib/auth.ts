@@ -2,6 +2,7 @@ import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { nextCookies } from "better-auth/next-js";
 import { genericOAuth } from "better-auth/plugins";
+import { UserRole } from "@/generated/prisma/enums";
 import { db } from "../../db";
 import {
   DAUTH_AUTHORIZATION_URL,
@@ -54,16 +55,22 @@ async function readDauthUserInfo(accessToken: string) {
     name: dauthProfile.name,
   };
 }
+const USER_ROLE_VALUES = [
+  UserRole.USER,
+  UserRole.WRITER,
+  UserRole.EDITOR,
+  UserRole.ADMIN,
+];
 
 export const auth = betterAuth({
   basePath: "/api/auth",
   user: {
     additionalFields: {
       role: {
-        type: "string",
+        type: USER_ROLE_VALUES,
         required: false,
         input: false,
-        defaultValue: "USER",
+        defaultValue: UserRole.USER,
       },
       dauthId: {
         type: "string",

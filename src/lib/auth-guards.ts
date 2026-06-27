@@ -2,10 +2,9 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import type { User } from "@/generated/prisma/client";
 import { UserRole } from "@/generated/prisma/enums";
+import { BLOG_PAGE } from "@/lib/auth-redirects";
 import { db } from "../../db";
 import { auth } from "./auth";
-
-const BLOG_PAGE = "/blogpage";
 
 type AuthGuardErrorCode = "UNAUTHENTICATED" | "FORBIDDEN";
 

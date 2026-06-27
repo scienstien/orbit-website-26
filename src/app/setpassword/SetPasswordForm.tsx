@@ -4,8 +4,13 @@ import { ArrowRight, LockKeyhole } from "lucide-react";
 import { useActionState } from "react";
 import { setPasswordAction } from "@/app/setpassword/actions";
 import { initialSetPasswordState } from "@/app/setpassword/state";
+import { TARGET_URI_PARAM } from "@/lib/auth-redirects";
 
-export default function SetPasswordForm() {
+type SetPasswordFormProps = {
+  targetUri: string;
+};
+
+export default function SetPasswordForm({ targetUri }: SetPasswordFormProps) {
   const [state, formAction, isPending] = useActionState(
     setPasswordAction,
     initialSetPasswordState,
@@ -13,6 +18,8 @@ export default function SetPasswordForm() {
 
   return (
     <form action={formAction} className="mt-8 space-y-5 text-left">
+      <input type="hidden" name={TARGET_URI_PARAM} value={targetUri} />
+
       <label className="block space-y-2">
         <span className="text-sm font-medium text-white/75">Password</span>
         <span className="flex h-12 items-center gap-3 border border-white/15 bg-white/5 px-4 transition focus-within:border-blue-300/60 focus-within:bg-white/10">

@@ -2,14 +2,32 @@
 
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { getCurrentUser } from "@/lib/auth-guards";
+import { getSafeRedirectPath, TARGET_URI_PARAM } from "@/lib/auth-redirects";
 import { db } from "../../../db";
 import type { SetPasswordState } from "./state";
 
-const BLOG_PAGE = "/blogpage";
 const MIN_PASSWORD_LENGTH = 8;
 const MAX_PASSWORD_LENGTH = 128;
+
+const setPasswordSchema = z
+  .object({
+    password: z
+      .string({ error: "Enter and confirm your password." })
+      .min(1, "Enter and confirm your password.")
+      .min(MIN_PASSWORD_LENGTH, "Password must be at least 8 characters.")
+      .max(MAX_PASSWORD_LENGTH, "Password must be 128 characters or fewer."),
+    confirmPassword: z
+      .string({ error: "Enter and confirm your password." })
+      .min(1, "Enter and confirm your password."),
+    [TARGET_URI_PARAM]: z.string().optional(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match.",
+    path: ["confirmPassword"],
+  });
 
 type RequestHeaders = Awaited<ReturnType<typeof headers>>;
 
@@ -49,10 +67,11 @@ async function createPasswordSession(
   email: string,
   password: string,
   requestHeaders: RequestHeaders,
+  callbackURL: string,
 ) {
   await auth.api.signInEmail({
     body: {
-      callbackURL: BLOG_PAGE,
+      callbackURL,
       email,
       password,
       rememberMe: true,
@@ -65,25 +84,22 @@ export async function setPasswordAction(
   _prevState: SetPasswordState,
   formData: FormData,
 ): Promise<SetPasswordState> {
-  const password = String(formData.get("password") ?? "");
-  const confirmPassword = String(formData.get("confirmPassword") ?? "");
+  const parsedFields = setPasswordSchema.safeParse({
+    password: formData.get("password"),
+    confirmPassword: formData.get("confirmPassword"),
+    [TARGET_URI_PARAM]: formData.get(TARGET_URI_PARAM) ?? undefined,
+  });
 
-  if (!password || !confirmPassword) {
-    return { error: "Enter and confirm your password." };
+  if (!parsedFields.success) {
+    return {
+      error:
+        parsedFields.error.issues[0]?.message ??
+        "Unable to set your password. Please try again.",
+    };
   }
 
-  if (password.length < MIN_PASSWORD_LENGTH) {
-    return { error: "Password must be at least 8 characters." };
-  }
-
-  if (password.length > MAX_PASSWORD_LENGTH) {
-    return { error: "Password must be 128 characters or fewer." };
-  }
-
-  if (password !== confirmPassword) {
-    return { error: "Passwords do not match." };
-  }
-
+  const { password } = parsedFields.data;
+  const targetUri = getSafeRedirectPath(parsedFields.data[TARGET_URI_PARAM]);
   const requestHeaders = await headers();
   const user = await getCurrentUser();
 
@@ -92,12 +108,17 @@ export async function setPasswordAction(
   }
 
   if (user.passwordSetAt) {
-    redirect(BLOG_PAGE);
+    redirect(targetUri);
   }
 
   if (await hasCredentialPassword(user.id)) {
     try {
-      await createPasswordSession(user.email, password, requestHeaders);
+      await createPasswordSession(
+        user.email,
+        password,
+        requestHeaders,
+        targetUri,
+      );
     } catch {
       return {
         error: "Password is already set. Sign in with your current password.",
@@ -105,7 +126,7 @@ export async function setPasswordAction(
     }
 
     await markPasswordAsSet(user.id);
-    redirect(BLOG_PAGE);
+    redirect(targetUri);
   }
 
   try {
@@ -116,13 +137,13 @@ export async function setPasswordAction(
   } catch (error) {
     if (await hasCredentialPassword(user.id)) {
       await markPasswordAsSet(user.id);
-      redirect(BLOG_PAGE);
+      redirect(targetUri);
     }
 
     return { error: getErrorMessage(error) };
   }
 
   await markPasswordAsSet(user.id);
-  await createPasswordSession(user.email, password, requestHeaders);
-  redirect(BLOG_PAGE);
+  await createPasswordSession(user.email, password, requestHeaders, targetUri);
+  redirect(targetUri);
 }

@@ -4,6 +4,11 @@ import { Rocket } from "lucide-react";
 import { useState } from "react";
 import { signUpWithDauth } from "@/lib/auth-utils";
 
+type SignupDauthButtonProps = {
+  authCallbackPath: string;
+  signupErrorPath: string;
+};
+
 function getAuthErrorMessage(result: unknown) {
   if (!result || typeof result !== "object" || !("error" in result)) {
     return null;
@@ -20,7 +25,10 @@ function getAuthErrorMessage(result: unknown) {
     : "Unable to start DAuth sign up. Please try again.";
 }
 
-export default function SignupDauthButton() {
+export default function SignupDauthButton({
+  authCallbackPath,
+  signupErrorPath,
+}: SignupDauthButtonProps) {
   const [authError, setAuthError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [rocketLaunching, setRocketLaunching] = useState(false);
@@ -37,7 +45,11 @@ export default function SignupDauthButton() {
 
     try {
       await new Promise((resolve) => setTimeout(resolve, 300));
-      const result = await signUpWithDauth({ errorCallbackURL: "/signup" });
+      const result = await signUpWithDauth({
+        callbackURL: authCallbackPath,
+        errorCallbackURL: signupErrorPath,
+        newUserCallbackURL: authCallbackPath,
+      });
       const errorMessage = getAuthErrorMessage(result);
 
       if (errorMessage) {
