@@ -2,9 +2,9 @@
 
 import { ArrowRight, LockKeyhole } from "lucide-react";
 import { useActionState } from "react";
-import { setPasswordAction } from "@/app/setpassword/actions";
-import { initialSetPasswordState } from "@/app/setpassword/state";
 import { TARGET_URI_PARAM } from "@/lib/auth-redirects";
+import { setPasswordAction } from "./actions";
+import { initialSetPasswordState } from "./state";
 
 type SetPasswordFormProps = {
   targetUri: string;

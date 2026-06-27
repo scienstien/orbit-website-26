@@ -6,7 +6,7 @@ import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { getCurrentUser } from "@/lib/auth-guards";
 import { getSafeRedirectPath, TARGET_URI_PARAM } from "@/lib/auth-redirects";
-import { db } from "../../../db";
+import { db } from "../../../../db";
 import type { SetPasswordState } from "./state";
 
 const MIN_PASSWORD_LENGTH = 8;
